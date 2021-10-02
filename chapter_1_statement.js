@@ -1,41 +1,63 @@
 function statement (invoice, plays) {
     let = totalAmount = 0;
-    let = volumeCredits = 0;
     let = result = `Statement for ${invoice.customer}\n`;
 
-    const format = new Int1.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 }).format;
-
     for (let perf of invoice.performances) {
-        const play = plays[perf.playID];
-        let thisAmount = 0;
 
-        switch (play.type) {
-        case "tragedy":
-            thisAmount = 40000;
-            if (perf.audience > 30) {
-                thisAmount += 1000 * (perf.audience - 30);
-            }
-            break;
-        case "comedy":
-            thisAmount = 30000;
-            if (perf.audience > 20) {
-                thisAmount += 10000 + 500 * (perf.audience - 20);
-            }
-            thisAmount += 300 * perf.audience;
-            break;
-        default:
-            throw new Error(`unknown type: ${play.type}`);
-        }
-
-        // ボリューム得点のポイントを加算
-        volumeCredits += Math.max(perf.audience - 30, 0);
-        // 喜劇のときは10人につき、さらにポイントを加算
-        if ("comedy" === play.type) volumeCredits += Math.floor(perf.audience / 5);
         // 注文の内訳を出力
-        result += ` ${play.name}: ${format(thisAmount/100)} (${perf.audience} seats)\n`;
-        totalAmount += thisAmount;
+        result += ` ${playFor(perf).name}: ${usd(amountFor(perf)/100)} (${perf.audience} seats)\n`;
+        totalAmount += amountFor(perf);
     }
-    result += `Amount owed is ${format(totalAmount/100)}\n`;
-    result += `You earned ${volumeCredits} credits\n`;
+
+    result += `Amount owed is ${usd(totalAmount/100)}\n`;
+    result += `You earned ${totalVolumeCredits()} credits\n`;
     return result;
+}
+
+function totalVolumeCredits() {
+    let volumeCredits = 0;
+    for (let perf of invoice.performances) {
+        // ボリューム得点のポイントを加算
+        volumeCredits += volumeCreditsFor(perf);
+    }
+    return volumeCredits;
+}
+
+function usd(aNumber) {
+    return new Int1.NumberFormat("en-US",
+    { style: "currency", currency: "USD", minimumFractionDigits: 2 }).format(aNumber/100);
+}
+
+function volumeCreditsFor(aPerformance) {
+    let result = 0;
+    result += Math.max(aPerformance.audience - 30, 0);
+    if ("comedy" === playFor(aPerformance).type) result += Math.floor(aPerformance.audience / 5);
+    return result;
+}
+
+function amountFor(aPerformance) {
+    let result = 0;
+    switch (playFor(perf).type) {
+    case "tragedy":
+        result = 40000;
+        if (aPerformance.audience > 30) {
+            result += 10000 + 500 * (aPerformance.audience - 20);
+        }
+        break;
+    case "comedy":
+        result = 30000;
+        if (aPerformance.audience > 20
+            ) {
+            result += 10000 + 500 * (aPerformance.audience - 20);
+        }
+        result += 300 * aPerformance.audience;
+        break;
+    default:
+        throw new Error(`unknown type: ${playFor(perf).type}`);
+    }
+    return result;
+}
+
+function playFor(aPerformance) {
+    return plays[aPerformance.playID];
 }
