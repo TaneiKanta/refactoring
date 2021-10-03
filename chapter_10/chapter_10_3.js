@@ -14,3 +14,11 @@ function getAmount() {
     }
     return result;
 }
+
+
+function getPayAmount() {
+    if (isDead) return deadAmount();
+    if (isSeparated) return separatedAmount();
+    if (isRerired) return retiredAmount();
+    return normalPayAmount();
+}
